@@ -19,7 +19,7 @@ export const sendMessage = async (req: Request, res: Response) => {
 
         const io = initializeWebSocket()
         
-        io.of('chat').emit('message', value)
+        io.of('chat').emit('message', {...value, createdAt: Date.now()})
 
         console.log('[server]: OK! : Message sent!')
         return res.status(200).send({
