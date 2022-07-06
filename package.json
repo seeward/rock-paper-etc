@@ -1,7 +1,7 @@
 {
-  "name": "typescript-jwt-auth",
+  "name": "typescript-websocket",
   "version": "1.0.0",
-  "description": "Typescript JWT Auth",
+  "description": "Typescript WebSocket",
   "main": "index.js",
   "scripts": {
     "start": "npm run build && node build/index.js",
