@@ -43,13 +43,6 @@ app.use(cors())
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
 
-// Socket Path
-io.of('/chat').on('connection', (socket: Socket) => {
-    console.log(`[server]: ${socket.id} connected`)
-    socket.on('disconnect', () => {
-        console.log(`[server]: ${socket.id} disconnected`)
-    })
-})
 
 // HTTP Routes
 app.use('/api/v1/user/chat', socketRoute)
@@ -78,15 +71,70 @@ app.use('/', (req: Request, res: Response) => {
     })
 })
 
+const currentPlayers: any = {};
+const currentGames: any = {};
+let playerCount = 0
+
+
+io.on('start-game', (socket: Socket) => {
+    console.log(`[server]: ${socket.id} started a game`)
+    currentGames[`game_${socket.id}`] = {
+        gameId: `game_${socket.id}`,
+        player1: currentPlayers[socket.id].id,
+        player2: 'ai',
+        result: null
+    }
+});
+
+
 io.on('connection', (socket: Socket) => {
     console.log(`[server]: ${socket.id} connected`)
 
+    if(!currentPlayers[socket.id]){
+        currentPlayers[socket.id] = {
+            playerId: socket.id,
+            playerNumber: (playerCount % 2) + 1,
+            nickname: null
+        }
+        playerCount++
+        socket.emit('current-count', playerCount)
+    }
     socket.on('disconnect', () => {
-        console.log(`[server]: ${socket.id} disconnected`)
+        console.log(`[server]: ${currentPlayers[socket.id].nick} disconnected`)
+        delete currentPlayers[socket.id]
+        playerCount--
+        io.emit('current-count', playerCount)
     })
+    socket.on('register', (data: any) => {
+        console.log(`[server]: ${data} registered to play`)
+        currentPlayers[socket.id].nickname = data
+    });
+    socket.on('make-move', (move: string) => {
+        console.log(`[server]: ${socket.id} made a move: ${move}`)
+        let aiMove = makeAIMove()
+        socket.emit('move-made', checkWinner(move, aiMove), aiMove)
+    })
+
+
 })
 
-// Server listener
+const makeAIMove = () => {
+    let aiMove = Math.floor(Math.random() * 3) + 1;
+    return aiMove === 1 ? 'rock' : aiMove === 2 ? 'paper' : 'scissors';
+}
+const checkWinner = (player1: string, player2: string) => {
+    if (player1 === player2) {
+        return 'tie';
+    }
+
+    const winMap: any = {
+        'rock': 'scissors',
+        'paper': 'rock',
+        'scissors': 'paper'
+    };
+
+    return winMap[player1] === player2 ? 'player1' : 'AI';
+}
 httpServer.listen(port, (): void => {
     console.log(`[server]: server running at port ${port}`)
 })

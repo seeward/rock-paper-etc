@@ -1,7 +1,7 @@
 import 'dotenv/config.js'
 
-const port: string = process.env.PORT ?? '5000'
-const mongoUri: string = process.env.MONGO_URI ?? 'mongodb://127.0.0.1:27017/database'
+const port: string = process.env.PORT ?? '5300'
+const mongoUri: string = process.env.MONGO_URI ?? 'mongodb+srv://liminil:LiminilL1%21%23@cluster0.rmmwg.mongodb.net/?retryWrites=true&w=majority'
 const cors = {
     cors: {
         origin: '*',
